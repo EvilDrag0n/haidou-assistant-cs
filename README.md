@@ -4,7 +4,7 @@
 >
 > **只用 Windows 自带的 .NET Framework 4.8 与系统 WebView2，程序本体 132 KB，整个分发目录 1.1 MB。**
 
-当前版本：**1.3.0**（2026-10-30）· 编译：Windows 自带 `csc.exe`（无需 SDK / VS / Node）
+当前版本：**1.3.1**（2026-11-10）· 编译：Windows 自带 `csc.exe`（无需 SDK / VS / Node）
 
 ---
 
@@ -26,7 +26,7 @@
 
 ## 下载与使用
 
-1. 到 [Releases](../../releases) 下载最新的 `HaiDouAssistant-1.3.0-win64.zip`。
+1. 到 [Releases](../../releases) 下载最新的 `HaiDouAssistant-1.3.1-win64.zip`。
 2. 解压到**任意可写目录**（例如 `D:\Tools\HaiDouAssistant`，不要放在 `C:\Program Files` 这类需要管理员权限的位置）。
 3. 双击 `HaiDouAssistant.exe`。
    - 先开英雄联盟客户端，再开助手；助手会自己找客户端的本地端口与 token。
@@ -146,7 +146,7 @@ test.bat
 
 ## 文档
 
-- [docs/RELEASE-1.3.0.md](docs/RELEASE-1.3.0.md) —— 本版更新说明
+- [docs/RELEASE-1.3.1.md](docs/RELEASE-1.3.1.md) —— 本版更新说明
 - [docs/VERIFY-CHECKLIST.md](docs/VERIFY-CHECKLIST.md) —— 真机验证清单
 - [docs/TODO.md](docs/TODO.md) —— 待办与已知差异
 - [docs/HEX-DATA-RESEARCH.md](docs/HEX-DATA-RESEARCH.md) —— 海克斯数据源调研

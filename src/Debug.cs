@@ -347,7 +347,7 @@ namespace HaiDou
         public static Result Env(Engine eng)
         {
             List<string> lines = new List<string>();
-            lines.Add("appVersion      1.2.0-cs");
+            lines.Add("appVersion      1.3.1-cs");
             lines.Add("os              " + Environment.OSVersion);
             lines.Add("clr             " + Environment.Version);
             lines.Add("64bit           " + Environment.Is64BitProcess);

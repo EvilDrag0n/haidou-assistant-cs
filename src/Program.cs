@@ -330,7 +330,7 @@ namespace HaiDou
                     return new Dictionary<string, object>
                     {
                         { "status", eng.Snapshot() },
-                        { "version", "1.3.0" },
+                        { "version", "1.3.1" },
                         { "logs", new List<object>() },
                         { "dataDir", Paths.DataDir },
                         { "configPath", Paths.ConfigFile },
@@ -530,7 +530,7 @@ namespace HaiDou
                 {
                     { "env", new Dictionary<string, object>
                         {
-                            { "appVersion", "1.3.0-cs" },
+                            { "appVersion", "1.3.1-cs" },
                             { "dataDir", Paths.DataDir },
                             { "dataSource", Paths.Source },
                             { "configPath", Paths.ConfigFile },

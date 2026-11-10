@@ -35,7 +35,8 @@ namespace HaiDou
             DoubleBuffered = true;
 
             Rectangle wa = Screen.PrimaryScreen.WorkingArea;
-            Location = new Point(wa.Left + (wa.Width - Width) / 2, wa.Bottom - Height - 130);
+            // 放在屏幕上方居中，避免遮挡下方的海克斯详情。
+            Location = new Point(wa.Left + (wa.Width - Width) / 2, wa.Top + 80);
 
             keyTimer = new System.Windows.Forms.Timer();
             keyTimer.Interval = 40;

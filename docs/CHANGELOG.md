@@ -1,6 +1,6 @@
 # 历史更新记录
 
-当前版本见 [RELEASE-1.3.0.md](RELEASE-1.3.0.md)，主 README 在仓库根目录。
+当前版本见 [RELEASE-1.3.1.md](RELEASE-1.3.1.md)，主 README 在仓库根目录。
 
 ## 1.2.0（2026-10-30）
 

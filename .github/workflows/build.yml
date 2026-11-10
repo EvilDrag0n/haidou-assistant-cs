@@ -33,7 +33,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $stage | Out-Null
           Copy-Item out/HaiDouAssistant.exe, out/app.ico, out/*.dll -Destination $stage
           Copy-Item out/data, out/wwwroot -Destination $stage -Recurse
-          Copy-Item docs/RELEASE-1.3.0.md, docs/VERIFY-CHECKLIST.md -Destination $stage
+          Copy-Item docs/RELEASE-1.3.1.md, docs/VERIFY-CHECKLIST.md -Destination $stage
           Compress-Archive -Path $stage -DestinationPath dist/HaiDouAssistant-win64.zip -Force
           Get-FileHash dist/HaiDouAssistant-win64.zip -Algorithm SHA256
 

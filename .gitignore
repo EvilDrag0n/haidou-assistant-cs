@@ -1,5 +1,6 @@
 # 编译产物（走 Release 分发，不进版本库）
 /out/
+/dist/
 /HaiDouAssistant.exe
 *.zip
 

@@ -219,7 +219,6 @@
   <h3>操作</h3>
   <div class="btns">
     <button id="btn-reconnect" class="primary">重连客户端</button>
-    <button id="btn-cleanup">清理旧出装</button>
     <button id="btn-testgold">预览浮层</button>
     <button id="btn-debug">调试页</button>
     <button id="btn-config">配置文件</button>
@@ -386,7 +385,6 @@ function render(s){
   else if (s.connected) { dot.classList.add('on'); headline = s.isHex ? '已连接 · 海克斯大乱斗' : '已连接客户端'; }
   else {
     dot.classList.add('wait');
-    if (s.waitAttempts) headline = `等待游戏客户端…（第 ${s.waitAttempts} 次重试）`;
   }
   $('headline').textContent = headline;
   dot.title = s.error || '';
@@ -588,10 +586,6 @@ $('save-path').onclick = async () => {
 
 /* 操作 */
 $('btn-reconnect').onclick = () => window.hx.reconnect();
-$('btn-cleanup').onclick = async () => {
-  const n = await window.hx.cleanup();
-  addLog({ level: 'info', text: `手动清理出装 ${n} 个`, at: Date.now() });
-};
 $('btn-testgold').onclick = () => window.hx.testGold();
 $('btn-config').onclick = () => window.hx.openConfig();
 $('btn-debug').onclick = () => window.hx.openDebug();

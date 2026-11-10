@@ -233,7 +233,7 @@ namespace HaiDou
             string fresh = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.UtcNow.Ticks;
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(fresh);
             req.Timeout = 10000; req.ReadWriteTimeout = 10000; req.KeepAlive = false;
-            req.UserAgent = "HaiDouAssistant/1.3.0";
+            req.UserAgent = "HaiDouAssistant/1.3.1";
             req.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
             req.Headers[HttpRequestHeader.CacheControl] = "no-cache, no-store";
             req.ServerCertificateValidationCallback = delegate(object sender, System.Security.Cryptography.X509Certificates.X509Certificate cert,
