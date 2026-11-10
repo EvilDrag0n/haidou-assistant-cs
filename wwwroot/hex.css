@@ -1,0 +1,37 @@
+.hex-view{color:#e6e9ef;font:13px/1.5 "Microsoft YaHei UI","Segoe UI",sans-serif}
+.hex-view *{box-sizing:border-box}
+.hex-title{font-size:21px;line-height:1.35;margin:0 0 6px;font-weight:650}
+.hex-eyebrow{font-size:10px;letter-spacing:2px;color:#9caacc;margin-bottom:8px}
+.hex-meta{font-size:11px;color:#9aa5bb;line-height:1.8;margin:0 0 12px;white-space:pre-line}
+.hex-toolbar{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.hex-toolbar label{font-size:10px;color:#9aa5bb;display:flex;gap:4px;align-items:center}
+.hex-toolbar select,.hex-toolbar button{font:12px "Microsoft YaHei UI",sans-serif;background:#1c2330;color:#dfe7f7;border:1px solid #34415a;border-radius:6px;padding:6px;min-width:0;cursor:pointer}
+.hex-toolbar button{margin-left:auto;background:#20314d;border-color:#48699a}
+.hex-toolbar button:disabled{opacity:.5;cursor:wait}
+.hex-note{font-size:10px;line-height:1.8;color:#8493ac;padding:8px 0}
+.hex-empty{padding:24px 12px;border:1px dashed #34405a;border-radius:10px;text-align:center;color:#a0abc0;font-size:12px;white-space:pre-line}
+.hex-error{border-color:#7b4c36;color:#efbc92}
+.hex-list-heading{display:flex;align-items:center;justify-content:space-between;margin:22px 0 9px;font-size:12px;font-weight:600}
+.hex-list-heading small{font-size:10px;color:#8391a9;font-weight:400}
+.hex-cards{display:grid;gap:8px}
+.hex-card{padding:11px 12px;background:linear-gradient(115deg,#1c2330,#171c27);border:1px solid #2e394d;border-radius:9px;border-left:3px solid #7388ae}
+.hex-card[data-rarity="silver"]{border-left-color:#bcc8d7}
+.hex-card[data-rarity="gold"]{border-left-color:#dfb94a}
+.hex-card[data-rarity="prismatic"]{border-left-color:#b49afa}
+.hex-card-line{display:flex;align-items:flex-start;gap:8px;justify-content:space-between}
+.hex-card-name{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.hex-card-rate{color:#80deb3;font-size:19px;line-height:1.1;font-weight:650;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hex-card-rate small{font-size:10px;margin-left:2px;font-weight:400;color:#9fb8ad}
+.hex-card-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px;color:#98a5bc;margin-top:7px}
+.hex-pill{border-radius:4px;background:#283348;color:#bdcbe3;padding:1px 5px;font-size:10px}
+.hex-sample-warning{color:#f2bf74}
+.hex-description{margin:8px 0 0;font-size:11px;color:#b1bdd2;white-space:pre-line}
+.hex-description summary{cursor:pointer;color:#8a9ab6}
+.hex-combo .hex-card-name{font-size:12px;line-height:1.7}
+.hex-combo{border-left-color:#5c97c4}
+.hex-baseline{background:#172b29;border:1px solid #2b4941;border-radius:7px;padding:8px 10px;color:#a8c7bb;font-size:11px;margin-bottom:8px}
+.hex-view select:focus-visible,.hex-view button:focus-visible{outline:2px solid #8bbcff;outline-offset:2px}
+.hex-tabs{display:flex;gap:4px;background:#131c2a;border-radius:8px;padding:4px;margin-top:16px}
+.hex-tabs button{flex:1;padding:8px 4px;background:transparent;color:#94a4bf;border:0;border-radius:5px;cursor:pointer;font:12px "Microsoft YaHei UI",sans-serif}
+.hex-tabs button[aria-selected="true"]{background:#2b3e5b;color:#e2edff}
+.hex-toolbar select:disabled{opacity:.45;cursor:default}

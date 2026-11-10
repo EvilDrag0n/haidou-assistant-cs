@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>英雄海克斯</title><link rel="stylesheet" href="hex.css">
+<style>html,body{margin:0;background:#10151e;color:#e6e9ef}body{padding:18px 16px 24px}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#34415a;border-radius:8px}.dock-tip{color:#75829b;font:10px/1.7 "Microsoft YaHei UI",sans-serif;margin:18px 0 0;border-top:1px solid #273245;padding-top:10px}</style>
+</head><body><main id="hex-root"></main><p class="dock-tip">选人时跟随客户端。优先右侧，空间不足时换边或浮动。关闭侧窗后，本次英雄不再自动弹出；可从主面板重新打开。</p>
+<script src="hex-view.js"></script><script>
+const view=HexView.create(document.getElementById('hex-root'),{setConfig:p=>window.hx.setConfig(p),refresh:()=>window.hx.refreshHex()});
+window.hx.onStatus(s=>view.render(s));
+window.hx.getBootstrap().then(info=>view.render(info.status));
+</script></body></html>

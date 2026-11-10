@@ -1,0 +1,22 @@
+# 编译产物（走 Release 分发，不进版本库）
+/out/
+/HaiDouAssistant.exe
+*.zip
+
+# 运行期数据：配置、启动日志、WebView2 缓存
+/hxdou-data/
+
+# 自检输出
+/selftest-output.txt
+/selftest-error.txt
+
+# 开发机临时/抓取数据
+/_research/
+*.tmp
+*.log
+
+# IDE / VS
+.vs/
+*.user
+*.suo
+*.sln.docstates

@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>海克斯大乱斗助手</title>
+<link rel="stylesheet" href="hex.css" />
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1d212a; --line:#262b36;
+    --txt:#e6e9ef; --dim:#8b93a7; --ok:#22c55e; --warn:#f59e0b;
+    --err:#ef4444; --blue:#3b82f6; --gold:#f5c451;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font:13px/1.55 "Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+
+  /* ---------- 顶部状态 ---------- */
+  .status{padding:14px 16px 12px; border-bottom:1px solid var(--line); background:linear-gradient(180deg,#171a21,#12151b)}
+  .line1{display:flex; align-items:center; gap:10px}
+  .dot{width:11px;height:11px;border-radius:50%;background:#4b5563;flex:0 0 auto;
+       box-shadow:0 0 0 0 rgba(0,0,0,0); transition:.2s}
+  .dot.on{background:var(--ok); box-shadow:0 0 10px rgba(34,197,94,.6)}
+  .dot.game{background:var(--blue); box-shadow:0 0 10px rgba(59,130,246,.7); animation:pulse 2s infinite}
+  .dot.wait{background:#8b93a7; animation:pulse 2.6s infinite}
+  .dot.err{background:var(--err); box-shadow:0 0 10px rgba(239,68,68,.6)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .big{font-size:15px;font-weight:600;letter-spacing:.2px}
+  .meta{margin-top:8px;display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr);gap:3px 10px;font-size:12px}
+  .meta dt{color:var(--dim)}
+  .meta dd{margin:0;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tag{display:inline-block;padding:0 6px;border-radius:4px;background:#232833;color:var(--dim);font-size:11px}
+  .tag.hex{background:rgba(59,130,246,.16);color:#8ab4ff}
+
+  /* ---------- 区块 ---------- */
+  .scroll{flex:1 1 auto;min-height:0;overflow-y:auto}
+  .scroll::-webkit-scrollbar{width:8px}
+  .scroll::-webkit-scrollbar-thumb{background:#2a3040;border-radius:4px}
+  .sec{padding:12px 16px;border-bottom:1px solid var(--line)}
+  .sec h3{margin:0 0 9px;font-size:11px;font-weight:600;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+
+  /* 开关 */
+  .sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0}
+  .sw .name{display:flex;flex-direction:column;gap:1px}
+  .sw .name b{font-weight:500;font-size:13px}
+  .sw .name span{font-size:11px;color:var(--dim)}
+  .toggle{position:relative;width:40px;height:22px;flex:0 0 auto}
+  .toggle input{opacity:0;width:100%;height:100%;margin:0;cursor:pointer;position:relative;z-index:2}
+  .track{position:absolute;inset:0;background:#2a3040;border-radius:99px;transition:.18s}
+  .knob{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#8b93a7;transition:.18s}
+  .toggle input:checked ~ .track{background:rgba(34,197,94,.35)}
+  .toggle input:checked ~ .knob{left:21px;background:var(--ok)}
+  .toggle input:disabled ~ .track{opacity:.4}
+
+  /* 按钮 */
+  .btns{display:flex;flex-wrap:wrap;gap:8px}
+  button{
+    flex:1 1 auto;min-width:96px;padding:7px 10px;border-radius:7px;cursor:pointer;
+    background:var(--card2);color:var(--txt);border:1px solid var(--line);
+    font:inherit;font-size:12px;transition:.15s
+  }
+  button:hover{background:#242a35;border-color:#333a49}
+  button:active{transform:translateY(1px)}
+  button.primary{background:rgba(59,130,246,.16);border-color:rgba(59,130,246,.4);color:#a8c4ff}
+
+  /* 队友 */
+  .mates{display:flex;flex-direction:column;gap:4px}
+  .mate{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:7px 9px;border-radius:6px;background:#12151b}
+  .mate .ch{flex:0 0 76px;font-size:12px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mate .who{flex:1;min-width:0;font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mate .stat{flex:0 0 auto;font-size:11px;padding:1px 6px;border-radius:4px;background:#1d212a;color:var(--dim)}
+  .mate .stat.good{background:rgba(34,197,94,.14);color:#6ee7a2}
+  .mate .stat.bad{background:rgba(239,68,68,.14);color:#f87171}
+  .mate .stat.unknown{background:#1d212a;color:#6b7280}
+  /* 马评徽章 */
+  .rank{flex:0 0 auto;font-size:10.5px;padding:1px 5px;border-radius:4px;font-weight:600}
+  .rank.top{background:rgba(34,197,94,.16);color:#6ee7a2}
+  .rank.mid{background:rgba(59,130,246,.16);color:#93b9ff}
+  .rank.low{background:rgba(245,158,11,.16);color:#fbbf24}
+  .rank.bad{background:rgba(239,68,68,.16);color:#f87171}
+  .rank.none{background:#1d212a;color:#6b7280;font-weight:400}
+  .mate .who{grid-column:1;grid-row:1;color:#d5deec}
+  .mate .ch{grid-column:1;grid-row:2;color:#8b93a7;font-size:11px}
+  .mate .rank{grid-column:2;grid-row:1;justify-self:end}
+  .mate .stat{grid-column:2;grid-row:2;justify-self:end}
+  .empty-hint{font-size:11px;color:#5f6a7d;padding:2px 0}
+  .kv-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .kv-label{flex:0 0 78px;font-size:12px;color:#8b93a7}
+  .kv-unit{font-size:11px;color:#5f6a7d}
+  .num{flex:0 0 74px;width:74px;padding:6px 8px;font-size:12px;text-align:center;
+       background:#12151b;border:1px solid #262b36;border-radius:6px;color:#e6e9ef;outline:none}
+  .num:focus{border-color:#2f6fed}
+  .num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .kv-hint{font-size:11px;color:#5f6a7d;line-height:1.6}
+  .kv-hint b{color:#8b93a7;font-weight:600}
+
+  /* 输入 */
+  .row{display:flex;gap:8px;align-items:center}  input[type=text]{
+    flex:1;min-width:0;padding:6px 9px;border-radius:7px;background:#12151b;
+    border:1px solid var(--line);color:var(--txt);font:inherit;font-size:12px
+  }
+  input[type=text]:focus{outline:none;border-color:rgba(59,130,246,.55)}
+
+  /* 日志 */
+  .logwrap{flex:0 0 90px;min-height:70px;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+  .loghead{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 6px;font-size:11px;color:var(--dim)}
+  .log{flex:1;overflow:auto;padding:0 16px 12px;font:12px/1.5 ui-monospace,Consolas,"Courier New",monospace}
+  .log div{white-space:pre-wrap;word-break:break-all;padding:1px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+  .t{color:#5b6478;margin-right:6px;font-size:11px}
+  .lv-info{color:#c9d2e3}
+  .lv-ok{color:#6ee7a2}
+  .lv-warn{color:#fbbf24}
+  .lv-error{color:#f87171}
+  .lv-debug{color:#6b7280}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+
+<section class="status">
+  <div class="line1">
+    <span id="dot" class="dot"></span>
+    <span id="headline" class="big">正在启动…</span>
+  </div>
+  <dl class="meta">
+    <dt>阶段</dt><dd id="m-phase">-</dd>
+    <dt>队列</dt><dd id="m-queue">-</dd>
+    <dt>英雄</dt><dd id="m-champ">-</dd>
+    <dt>客户端</dt><dd id="m-port">-</dd>
+  </dl>
+</section>
+
+<div class="scroll">
+
+<section class="sec">
+  <h3>当前英雄 · 海克斯决策</h3>
+  <p id="hex-summary" style="margin:0 0 10px;color:#aebbd3;font-size:12px">选定英雄后实时联网查询</p>
+  <button id="btn-hex-window" class="primary" style="width:100%">打开英雄海克斯侧窗</button>
+  <label class="sw">
+    <span class="name"><b>选人时自动吸附侧窗</b><span>跟随英雄联盟客户端，不抢焦点</span></span>
+    <span class="toggle"><input id="cb-hex-dock" type="checkbox"><span class="track"></span><span class="knob"></span></span>
+  </label>
+  <details><summary style="cursor:pointer;color:#8fa4c7;font-size:11px">在主面板展开推荐</summary><div id="hex-inline" style="padding-top:16px"></div></details>
+</section>
+
+<section class="sec">
+  <h3 style="display:flex;align-items:center;justify-content:space-between">
+    <span>队友 <span id="mates-hint" style="text-transform:none;letter-spacing:0;color:#5f6a7d"></span></span>
+    <button id="btn-send-chat" style="flex:0 0 auto;width:auto;margin:0;padding:2px 9px;font-size:11px;line-height:1.6">发到聊天</button>
+  </h3>
+  <div id="mates" class="mates">
+    <div class="empty-hint">进入选人阶段后自动读取</div>
+  </div>
+</section>
+
+<section class="sec">
+  <h3>功能开关</h3>
+
+  <label class="sw">
+    <span class="name"><b>自动接受对局</b><span id="auto-delay-summary">仅海克斯大乱斗，随机延迟后接受</span></span>
+    <span class="toggle"><input id="cb-auto" type="checkbox"><span class="track"></span><span class="knob"></span></span>
+  </label>
+
+<label class="sw">
+    <span class="name"><b>按住 Tab 显示经济差</b><span id="keyhint">读取按键中…</span></span>
+    <span class="toggle"><input id="cb-gold" type="checkbox"><span class="track"></span><span class="knob"></span></span>
+  </label>
+
+  <label class="sw">
+    <span class="name"><b>选人阶段发送队友战绩</b><span>每位队友单独一条，每局自动发送一次</span></span>
+    <span class="toggle"><input id="cb-chat" type="checkbox"><span class="track"></span><span class="knob"></span></span>
+  </label>
+</section>
+
+<section class="sec">
+  <details><summary style="cursor:pointer;color:#8b93a7;font-size:12px">参数设置 · 接受延迟与马评阈值</summary>
+  <div style="padding-top:12px">
+
+  <div class="kv-row">
+    <span class="kv-label">接受延迟</span>
+    <input id="in-delay-min" class="num" type="number" min="0" max="10000" step="100" placeholder="800" />
+    <span class="kv-unit">~</span>
+    <input id="in-delay-max" class="num" type="number" min="0" max="10000" step="100" placeholder="1500" />
+    <span class="kv-unit">ms</span>
+  </div>
+
+  <div class="kv-row">
+    <span class="kv-label">上等马 ≥</span>
+    <input id="in-rank-top" class="num" type="number" min="0" max="100" step="1" placeholder="70" />
+    <span class="kv-unit">%</span>
+  </div>
+  <div class="kv-row">
+    <span class="kv-label">中等马 ≥</span>
+    <input id="in-rank-mid" class="num" type="number" min="0" max="100" step="1" placeholder="40" />
+    <span class="kv-unit">%</span>
+  </div>
+  <div class="kv-row">
+    <span class="kv-label">下等马 ≥</span>
+    <input id="in-rank-low" class="num" type="number" min="0" max="100" step="1" placeholder="20" />
+    <span class="kv-unit">%</span>
+  </div>
+  <div class="kv-hint" id="rank-preview">低于下等马下限即「劣等马」；留空用默认值</div>
+  </div></details>
+</section>
+
+<section class="sec">
+  <h3>路径</h3>
+  <div class="row">
+    <input id="lolpath" type="text" placeholder="LoL 安装目录（留空自动探测）" spellcheck="false" />
+    <button id="btn-detect" style="flex:0 0 auto;min-width:72px">自动定位</button>
+    <button id="save-path" style="flex:0 0 auto;min-width:52px">保存</button>
+  </div>
+</section>
+
+<section class="sec">
+  <h3>操作</h3>
+  <div class="btns">
+    <button id="btn-reconnect" class="primary">重连客户端</button>
+    <button id="btn-cleanup">清理旧出装</button>
+    <button id="btn-testgold">预览浮层</button>
+    <button id="btn-debug">调试页</button>
+    <button id="btn-config">配置文件</button>
+    <button id="btn-data">数据目录</button>
+  </div>
+</section>
+
+</div><!-- /scroll -->
+
+<div class="logwrap">
+  <div class="loghead">
+    <span>运行日志</span>
+    <span style="display:flex;align-items:center;gap:12px">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#8b93a7">
+        <input id="cb-debug" type="checkbox" style="accent-color:#3b82f6"> 调试
+      </label>
+      <span id="ver"></span>
+    </span>
+  </div>
+  <div id="log" class="log"></div>
+</div>
+
+<script src="hex-view.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const logBox = $('log');
+const allLogs = [];
+let showDebug = false;
+let status = null;
+const hexView = HexView.create($('hex-inline'), { setConfig: p => window.hx.setConfig(p), refresh: () => window.hx.refreshHex() });
+
+function fmtTime(ts){
+  const d = new Date(ts || Date.now());
+  const p = (n, w = 2) => String(n).padStart(w, '0');
+  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
+}
+
+function lineFor(entry){
+  const div = document.createElement('div');
+  div.className = 'lv-' + (entry.level || 'info');
+  div.innerHTML = `<span class="t">${fmtTime(entry.at)}</span>${escapeHtml(entry.text)}`;
+  return div;
+}
+
+function addLog(entry){
+  allLogs.push(entry);
+  while (allLogs.length > 300) allLogs.shift();
+  if (entry.level === 'debug' && !showDebug) return;
+  logBox.appendChild(lineFor(entry));
+  while (logBox.childElementCount > 300) logBox.removeChild(logBox.firstChild);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+function rerenderLogs(){
+  logBox.innerHTML = '';
+  for (const e of allLogs) {
+    if (e.level === 'debug' && !showDebug) continue;
+    logBox.appendChild(lineFor(e));
+  }
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+$('cb-debug').onchange = (e) => { showDebug = e.target.checked; rerenderLogs(); };
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let matesSig = '';
+
+function renderMates(list){
+  const box = $('mates');
+  const hint = $('mates-hint');
+  if (!Array.isArray(list) || list.length === 0) {
+    box.innerHTML = '<div class="empty-hint">进入选人阶段后自动读取</div>';
+    hint.textContent = '';
+    matesSig = '';
+    return;
+  }
+
+  const named = list.filter((m) => m.name).length;
+  hint.textContent = `· ${named}/${list.length} 可识别`;
+
+  // 签名里**故意不含英雄名**：换英雄只走下面的局部更新，不重建 DOM
+  const sig = list.map((m) => [
+    m.cellId, m.name || '', m.tag || '', m.note || '', JSON.stringify(m.rank), JSON.stringify(m.history),
+  ].join(':')).join('|');
+
+  if (sig === matesSig && box.querySelector('.mate')) {
+    // 只改英雄名（自己或队友重选英雄时）
+    for (const m of list) {
+      const row = box.querySelector(`.mate[data-cell="${m.cellId}"]`);
+      if (!row) continue;
+      const ch = row.querySelector('.ch');
+      const text = m.champion || '未选';
+      if (ch && ch.textContent !== text) {
+        ch.textContent = text;
+        ch.title = m.championId ? `championId ${m.championId}` : '';
+      }
+    }
+    return;
+  }
+
+  matesSig = sig;
+  box.innerHTML = '';
+  for (const m of list) {
+    const row = document.createElement('div');
+    row.className = 'mate';
+    row.dataset.cell = m.cellId;
+
+    const ch = document.createElement('span');
+    ch.className = 'ch';
+    ch.textContent = m.champion || '未选';
+    ch.title = m.championId ? `championId ${m.championId}` : '';
+
+    const rank = document.createElement('span');
+    rank.className = 'rank ' + (m.rank?.key || 'none');
+    rank.textContent = m.rank?.name || '无数据';
+
+    const who = document.createElement('span');
+    who.className = 'who';
+    if (m.name) {
+      who.textContent = m.tag ? `${m.name}#${m.tag}` : m.name;
+    } else {
+      who.textContent = m.note || 'ID 已隐藏';
+    }
+    who.title = [
+      m.summonerId ? `summonerId ${m.summonerId}` : '',
+      m.puuid ? `puuid ${String(m.puuid).slice(0, 16)}…` : '',
+    ].filter(Boolean).join('  ') || who.textContent;
+
+    const stat = document.createElement('span');
+    const h = m.history;
+    if (h && Number.isFinite(h.winRate)) {
+      stat.className = 'stat ' + (h.winRate >= 55 ? 'good' : h.winRate < 45 ? 'bad' : '');
+      stat.textContent = `近${h.total}场 ${h.winRate}% · KDA ${h.kda}`;
+      stat.title = `${h.wins}胜${h.total - h.wins}负` + (h.avg ? `  场均 ${h.avg}` : '');
+    } else {
+      stat.className = 'stat unknown';
+      stat.textContent = (h && h.note) ? '战绩不可见' : '无战绩';
+      stat.title = (h && h.note) || '';
+    }
+
+    row.append(ch, rank, who, stat);
+    box.appendChild(row);
+  }
+}
+
+function render(s){
+  if (!s) return;
+  status = s;
+  hexView.render(s);
+  $('cb-hex-dock').checked = s.config.hexDock !== false;
+  const hex = s.hex || {};
+  $('hex-summary').textContent = ({loading:'正在实时查询…',ready:'最新统计已就绪',error:'实时获取失败，请打开侧窗重试',empty:'暂无该英雄统计'})[hex.status]
+    ? (hex.champion || '当前英雄') + ' · ' + ({loading:'正在实时查询…',ready:'最新统计已就绪',error:'实时获取失败，请打开侧窗重试',empty:'暂无该英雄统计'})[hex.status]
+    : '选定英雄后实时联网查询';
+
+  const dot = $('dot');
+  dot.className = 'dot';
+  let headline = '等待游戏客户端…';
+  if (s.connected && s.inGame && s.isHex) { dot.classList.add('game'); headline = '对局中 · 海克斯大乱斗'; }
+  else if (s.connected && s.inGame) { dot.classList.add('on'); headline = `对局中 · ${s.queueId || '未知队列'}`; }
+  else if (s.connected) { dot.classList.add('on'); headline = s.isHex ? '已连接 · 海克斯大乱斗' : '已连接客户端'; }
+  else {
+    dot.classList.add('wait');
+    if (s.waitAttempts) headline = `等待游戏客户端…（第 ${s.waitAttempts} 次重试）`;
+  }
+  $('headline').textContent = headline;
+  dot.title = s.error || '';
+
+  $('m-phase').textContent = s.phaseText || '-';
+  $('m-queue').textContent = s.queueId
+    ? `${s.queueId}` + (s.isHex ? ' · 海克斯大乱斗' : ' · 非目标队列')
+    : '-';
+  $('m-champ').textContent = s.champion
+    ? s.champion
+    : '-';
+  $('m-port').textContent = s.connected ? `127.0.0.1:${s.port}` : '—';
+
+  $('cb-auto').checked = Boolean(s.config.autoAccept);
+  $('cb-gold').checked = Boolean(s.config.enableGoldDiff);
+  $('cb-chat').checked = Boolean(s.config.chatReport);
+
+  // 参数设置（只在没聚焦时回填，避免打字被覆盖）
+  const c = s.config || {};
+  $('auto-delay-summary').textContent = '仅海克斯大乱斗，随机 ' + ((c.autoAcceptDelayMin ?? 800) / 1000) + '~' + ((c.autoAcceptDelayMax ?? 1500) / 1000) + 's 后接受';
+  const fill = (id, v, dft) => {
+    const el = $(id);
+    if (!el || document.activeElement === el) return;
+    el.value = (v === undefined || v === null || v === '') ? (dft ?? '') : v;
+    el.placeholder = String(dft ?? '');
+  };
+  fill('in-delay-min', c.autoAcceptDelayMin, 800);
+  fill('in-delay-max', c.autoAcceptDelayMax, 1500);
+  fill('in-rank-top', c.rankTop, 70);
+  fill('in-rank-mid', c.rankMid, 40);
+  fill('in-rank-low', c.rankLow, 20);
+  updateRankPreview(c);
+  $('btn-send-chat').disabled = !(s.teammates || []).length;
+
+  $('keyhint').textContent = ({
+    koffi: '按键监听正常（按住 Tab）',
+    powershell: '按键监听（兼容模式）',
+    none: '读不到按键，功能不可用'
+  })[s.keyKind] || '读取按键中…';
+
+  if (s.config.enableGoldDiff) {
+    $('keyhint').textContent = s.gold?.data
+      ? (s.gold.error || '按键正常 · 装备价值数据已就绪')
+      : '按键正常 · 等待对局数据';
+  }
+
+  if (document.activeElement !== $('lolpath')) {
+    const inp = $('lolpath');
+    inp.value = s.config.lolPath || '';
+    inp.placeholder = s.lolPath
+      ? '自动探测：' + s.lolPath
+      : 'LoL 安装目录（留空自动探测）';
+  }
+
+  renderMates(s.teammates);
+}
+
+const DEMO = new URLSearchParams(location.search).get('demo') === '1';
+
+const DEMO_STATUS = {
+  connected: true, port: 52341, phase: 'ChampSelect', phaseText: '选人',
+  queueId: 2400, isHex: true, inGame: false,
+  champion: '黑暗之女', championId: 1, 
+  lolPath: 'C:\\Riot Games\\League of Legends', keyKind: 'koffi',
+  gold: { visible: false, data: { blue: 48210, red: 43880, diff: 4330, diffText: '+4.3K', blueText: '48.2K', redText: '43.9K' } },
+  autoAccept: { enabled: true, armed: false },
+  config: { autoAccept: true, enableGoldDiff: true, lolPath: '' },
+  teammates: [
+    { cellId: 1, championId: 22, champion: '寒冰射手', name: '早睡早起', tag: '0512', rank: { name: '上等马', key: 'top' }, history: { total: 10, wins: 7, losses: 3, winRate: 70, kda: '4.1', avg: '6.2/3.1/9.4' } },
+    { cellId: 2, championId: 99, champion: '光辉女郎', name: '摸鱼选手', tag: '233', rank: { name: '劣等马', key: 'bad' }, history: { total: 10, wins: 3, losses: 7, winRate: 30, kda: '1.8', avg: '3.0/6.4/5.1' } },
+    { cellId: 3, championId: 0, champion: '', name: '', tag: '', rank: null, note: '名称已隐藏', history: { note: '战绩不可见（非好友/隐私限制）' } },
+    { cellId: 4, championId: 412, champion: '魂锁典狱长', name: 'ThreshGod', tag: 'KR1', rank: { name: '中等马', key: 'mid' }, history: { total: 10, wins: 5, losses: 5, winRate: 50, kda: '3.0', avg: '2.1/4.2/14.0' } },
+  ],
+};
+
+async function boot(){
+  if (DEMO) {
+    render(DEMO_STATUS);
+    [
+      { level: 'info', text: '引擎启动' },
+      { level: 'ok', text: '已连接游戏客户端（端口 52341）' },
+      { level: 'info', text: '阶段 → 选人（海克斯大乱斗）' },
+      { level: 'info', text: '你的英雄：黑暗之女' },
+      { level: 'debug', text: '队友信息：寒冰射手(早睡早起) / 光辉女郎(摸鱼选手) / ?(名称已隐藏) / 魂锁典狱长(ThreshGod)' },
+    ].forEach((e) => addLog({ ...e, at: Date.now() }));
+    window.hx.onStatus(render);
+    window.hx.onLog(addLog);
+    return;
+  }
+
+  const info = await window.hx.getBootstrap();
+  $('ver').textContent = 'v' + (info.version || '0.1.0');
+  for (const l of info.logs || []) addLog(l);
+  if (info.dataDir) addLog({ level: 'info', text: '数据目录：' + info.dataDir, at: Date.now() });
+  render(info.status);
+  window.hx.onStatus(render);
+  window.hx.onLog(addLog);
+}
+
+/* 开关 */
+async function saveConfig(patch) {
+  const r = await window.hx.setConfig(patch);
+  if (r && r.ok === false) {
+    addLog({ level: 'error', text: `设置保存失败：${r.error}`, at: Date.now() });
+    alert('设置没能保存：\n' + r.error + '\n\n配置路径：' + (r.path || ''));
+  }
+  return r;
+}
+
+$('cb-auto').onchange = (e) => saveConfig({ autoAccept: e.target.checked });
+$('cb-gold').onchange = (e) => saveConfig({ enableGoldDiff: e.target.checked });
+$('cb-chat').onchange = (e) => saveConfig({ chatReport: e.target.checked });
+$('cb-hex-dock').onchange = (e) => saveConfig({ hexDock: e.target.checked });
+$('btn-hex-window').onclick = () => window.hx.openHex();
+
+/* 参数设置：失焦/回车时保存 */
+function numVal(id, min, max, dft) {
+  const el = $(id);
+  if (!el) return dft;
+  const raw = String(el.value || '').trim();
+  if (raw === '') return dft;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return dft;
+  return Math.max(min, Math.min(max, Math.round(n)));
+}
+
+async function saveNumbers() {
+  const dMin = numVal('in-delay-min', 0, 10000, 800);
+  const dMax = numVal('in-delay-max', 0, 10000, 1500);
+  const top = numVal('in-rank-top', 0, 100, 70);
+  const mid = numVal('in-rank-mid', 0, 100, 40);
+  const low = numVal('in-rank-low', 0, 100, 20);
+
+  if (top <= mid || mid <= low) {
+    alert('阈值必须递减：上等马 > 中等马 > 下等马，当前 ' + top + ' / ' + mid + ' / ' + low);
+    return;
+  }
+  const lo = Math.min(dMin, dMax), hi = Math.max(dMin, dMax);
+  await saveConfig({
+    autoAcceptDelayMin: lo, autoAcceptDelayMax: hi,
+    rankTop: top, rankMid: mid, rankLow: low,
+  });
+  $('in-delay-min').value = lo;
+  $('in-delay-max').value = hi;
+  updateRankPreview({ rankTop: top, rankMid: mid, rankLow: low });
+  addLog({ level: 'info', text: `参数已保存：延迟 ${lo}~${hi}ms，马评 ${top}/${mid}/${low}%`, at: Date.now() });
+}
+
+['in-delay-min','in-delay-max','in-rank-top','in-rank-mid','in-rank-low'].forEach((id) => {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener('blur', saveNumbers);
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') el.blur(); });
+});
+
+function updateRankPreview(c) {
+  const top = c.rankTop ?? 70, mid = c.rankMid ?? 40, low = c.rankLow ?? 20;
+  const el = $('rank-preview');
+  if (el) el.innerHTML = `<b>上等马</b> ≥${top}%　<b>中等马</b> ${mid}~${top - 1}%　<b>下等马</b> ${low}~${mid - 1}%　<b>劣等马</b> <${low}%`;
+}
+
+$('btn-send-chat').onclick = async () => {
+  $('btn-send-chat').disabled = true;
+  try {
+    const r = await window.hx.sendChat();
+    if (r?.ok) {
+      addLog({ level: 'ok', text: `已发送队友战绩（${r.level}）`, at: Date.now() });
+      alert('已发送：\n\n' + (r.text || ''));
+    } else {
+      addLog({ level: 'warn', text: '发送失败：' + (r?.error || '未知'), at: Date.now() });
+      alert('发送失败：\n' + (r?.error || '未知') + '\n\n（需要在「选人阶段」，且接口要支持；失败原因会写进日志，导出诊断能带上）');
+    }
+  } finally {
+    $('btn-send-chat').disabled = false;
+  }
+};
+
+/* 路径 */
+$('btn-detect').onclick = async () => {
+  const r = await window.hx.detectLol();
+  if (r.ok) {
+    $('lolpath').value = r.path;
+    await saveConfig({ lolPath: r.path });
+    addLog({ level: 'ok', text: `已定位 LoL：${r.path}（${r.by}）`, at: Date.now() });
+  } else {
+    const tried = (r.tried || []).slice(0, 5).map((t) => `  ${t.path}`).join('\n');
+    addLog({ level: 'warn', text: '没找到 LoL 安装目录，请手动填', at: Date.now() });
+    alert('没找到 LoL 安装目录。\n\n请在输入框里手动填安装根目录，例如：\n  D:\\WeGameApps\\英雄联盟\n  C:\\Riot Games\\League of Legends\n\n试过的路径（前 5 条）：\n' + tried);
+  }
+};
+
+$('save-path').onclick = async () => {
+  const v = $('lolpath').value.trim();
+  const r = await saveConfig({ lolPath: v });
+  if (r && r.ok !== false) {
+    addLog({ level: 'info', text: v ? 'LoL 目录已设为 ' + v : 'LoL 目录已改为自动探测', at: Date.now() });
+  }
+};
+
+/* 操作 */
+$('btn-reconnect').onclick = () => window.hx.reconnect();
+$('btn-cleanup').onclick = async () => {
+  const n = await window.hx.cleanup();
+  addLog({ level: 'info', text: `手动清理出装 ${n} 个`, at: Date.now() });
+};
+$('btn-testgold').onclick = () => window.hx.testGold();
+$('btn-config').onclick = () => window.hx.openConfig();
+$('btn-debug').onclick = () => window.hx.openDebug();
+$('btn-data').onclick = async () => {
+  const p = await window.hx.openData();
+  addLog({ level: 'info', text: '数据目录：' + p, at: Date.now() });
+};
+
+boot();
+</script>
+</body>
+</html>

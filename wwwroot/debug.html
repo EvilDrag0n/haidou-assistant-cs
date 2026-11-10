@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>调试页 · 海克斯大乱斗助手</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1d212a; --line:#262b36;
+    --txt:#e6e9ef; --dim:#8b93a7; --ok:#22c55e; --warn:#f59e0b;
+    --err:#ef4444; --blue:#3b82f6;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:13px/1.6 "Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+    display:flex;flex-direction:column;overflow:hidden}
+
+  header{padding:12px 18px;border-bottom:1px solid var(--line);background:#141821}
+  header h1{margin:0 0 4px;font-size:15px;font-weight:600}
+  header p{margin:0;font-size:12px;color:var(--dim)}
+  .chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:3px 9px;
+    border-radius:99px;background:#1d212a;font-size:12px;color:var(--dim)}
+  .chip b{color:var(--txt);font-weight:500}
+  .dot{width:8px;height:8px;border-radius:50%;background:#4b5563}
+  .dot.on{background:var(--ok);box-shadow:0 0 8px rgba(34,197,94,.6)}
+  .dot.game{background:var(--blue);box-shadow:0 0 8px rgba(59,130,246,.7)}
+
+  .body{flex:1;display:flex;min-height:0}
+  .left{flex:0 0 340px;border-right:1px solid var(--line);overflow:auto;padding:14px}
+  .right{flex:1;display:flex;flex-direction:column;min-width:0;padding:14px}
+
+  .group{margin-bottom:16px}
+  .group h2{margin:0 0 8px;font-size:11px;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+  button{
+    display:flex;align-items:center;gap:9px;width:100%;margin-bottom:8px;padding:9px 11px;
+    border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--txt);
+    font:inherit;font-size:12.5px;text-align:left;cursor:pointer;transition:.15s
+  }
+  button:hover{background:#242a35;border-color:#333a49}
+  button:active{transform:translateY(1px)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button .n{flex:0 0 20px;height:20px;border-radius:6px;background:#2a3040;color:#9aa6bd;
+    display:flex;align-items:center;justify-content:center;font-size:11px}
+  button.primary{border-color:rgba(59,130,246,.45);background:rgba(59,130,246,.14);color:#a8c4ff}
+  button.danger{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.12);color:#fca5a5}
+  button.strong{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.14);color:#86efac;font-weight:600}
+  button small{display:block;color:var(--dim);font-size:11px;font-weight:400}
+
+  .outhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .outhead h3{margin:0;font-size:13px;font-weight:600}
+  .outhead .acts{display:flex;gap:8px}
+  .outhead button{width:auto;margin:0;padding:5px 10px;font-size:11.5px}
+  pre#out{
+    flex:1;margin:0;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:#0b0e13;color:#c9d2e3;overflow:auto;white-space:pre-wrap;word-break:break-all;
+    font:12px/1.6 ui-monospace,Consolas,"Courier New",monospace
+  }
+  .placeholder{color:#5f6a7d}
+  .hint{margin-top:10px;font-size:11.5px;color:#5f6a7d}
+  .ok{color:#6ee7a2}.bad{color:#f87171}
+  .steps{font-size:11.5px;color:var(--dim);margin:0 0 12px;padding-left:16px}
+  .steps li{margin:2px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>调试页 · 海克斯大乱斗助手</h1>
+  <p>按左边 1 → 6 顺序点，最后点「导出诊断」；把生成的两个文件发回来即可定位问题。全部只读，只有「立即接受」会动状态。</p>
+  <span class="chip"><span id="dot" class="dot"></span><span id="stateText">正在读取状态…</span></span>
+</header>
+
+<div class="body">
+  <div class="left">
+
+    <div class="group">
+      <h2>按顺序点</h2>
+
+      <button data-act="connect" class="primary">
+        <span class="n">1</span>
+        <span>检查连接<small>客户端有没有连上、当前阶段/队列</small></span>
+      </button>
+
+      <button data-act="champselect">
+        <span class="n">2</span>
+        <span>转储选人数据<small>需要处于「选人阶段」</small></span>
+      </button>
+
+      <button data-act="teammates">
+        <span class="n">3</span>
+        <span>探测队友接口<small>逐个队友试所有候选接口</small></span>
+      </button>
+
+      <button data-act="live">
+        <span class="n">4</span>
+        <span>对局内数据（2999）<small>需要已进游戏</small></span>
+      </button>
+
+      <button data-act="readycheck">
+        <span class="n">5</span>
+        <span>待接受状态（只读）<small>看自动接受的判据</small></span>
+      </button>
+
+      <button data-act="export" class="strong">
+        <span class="n">6</span>
+        <span>导出诊断文件<small>生成到桌面，两个文件</small></span>
+      </button>
+    </div>
+
+    <div class="group">
+      <h2>单独工具</h2>
+      <button data-act="env"><span class="n">·</span><span>运行环境自检<small>版本 / koffi / 路径 / 启动日志</small></span></button>
+      <button data-act="lolpath"><span class="n">·</span><span>定位 LoL 安装目录<small>找不到目录时点这个</small></span></button>
+      <button data-act="chattest"><span class="n">·</span><span>发送测试消息到选人聊天<small>验证接口是否可用（需在选人阶段）</small></span></button>
+      <button data-act="swagger"><span class="n">·</span><span>导出接口清单（swagger）<small>列出你这个补丁真实存在的接口</small></span></button>
+      <button data-act="globals"><span class="n">·</span><span>全局接口探测<small>大厅/召唤师/好友等</small></span></button>
+      <button data-act="gold"><span class="n">·</span><span>预览经济差浮层<small>3 秒后自动消失</small></span></button>
+      <button data-act="cleanup"><span class="n">·</span><span>清理出装文件<small>删掉自己写的 !!!hxdou-*.json</small></span></button>
+      <button data-act="openProbe"><span class="n">·</span><span>打开探测输出目录</span></button>
+      <button data-act="accept" class="danger"><span class="n">!</span><span>立即接受当前对局<small>真的会接受，慎点</small></span></button>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="outhead">
+      <h3 id="title">结果</h3>
+      <div class="acts">
+        <button id="btn-copy">复制</button>
+        <button id="btn-folder">打开所在文件夹</button>
+        <button id="btn-clear">清空</button>
+      </div>
+    </div>
+    <pre id="out" class="placeholder">点左边的按钮，结果显示在这里。
+
+建议流程：
+  1 检查连接        —— 任何时候
+  2 转储选人数据    —— 进入选人阶段后
+  3 探测队友接口    —— 进入选人阶段后
+  4 对局内数据      —— 进入游戏后
+  5 待接受状态      —— 排队时
+  6 导出诊断        —— 最后一次，把桌面上的两个文件发回</pre>
+    <div class="hint" id="hint"></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const out = $('out');
+let lastText = '';
+let lastPaths = null;
+let status = null;
+
+function setOut(title, text, ok = true) {
+  $('title').textContent = title;
+  out.classList.remove('placeholder');
+  out.textContent = text;
+  out.className = ok ? '' : 'bad';
+  lastText = `${title}\n\n${text}`;
+}
+
+function statusLine(s) {
+  const dot = $('dot');
+  dot.className = 'dot';
+  if (!s) { $('stateText').textContent = '未连接客户端（先打开英雄联盟客户端）'; return; }
+  if (s.connected && s.inGame) dot.classList.add('game');
+  else if (s.connected) dot.classList.add('on');
+  $('stateText').innerHTML = s.connected
+    ? `已连接 <b>127.0.0.1:${s.port}</b> · 阶段 <b>${s.phaseText || s.phase}</b> · 队列 <b>${s.queueId || '—'}</b>`
+    : '未连接客户端（先打开英雄联盟客户端）';
+}
+
+async function run(action) {
+  const btns = [...document.querySelectorAll('button[data-act]')];
+  btns.forEach((b) => (b.disabled = true));
+  $('hint').textContent = '执行中…';
+  try {
+    if (action === 'accept') {
+      const ok = confirm('确认立刻接受当前待接受的比赛？\n（只有处于「待接受」状态才有效）');
+      if (!ok) { $('hint').textContent = ''; return; }
+      const r = await window.debug.accept();
+      setOut('立即接受', r.ok ? '已发出接受请求。\n\n' + JSON.stringify(r.raw ?? {}, null, 2) : '失败：' + r.text, r.ok);
+      return;
+    }
+
+    if (action === 'chattest') {
+      const ok = confirm('会往「选人聊天」发一条测试消息，确认？');
+      if (!ok) { $('hint').textContent = ''; return; }
+    }
+
+    const r = await window.debug.run(action);
+    setOut(r.title || action, r.text || JSON.stringify(r, null, 2), r.ok !== false);
+    lastPaths = r.paths || null;
+    if (action === 'gold') await window.debug.goldPreview();
+    if (action === 'openProbe' || action === 'export') {
+      $('hint').textContent = '提示：点右上「打开所在文件夹」可直接定位文件。';
+    } else {
+      $('hint').textContent = '';
+    }
+  } catch (e) {
+    setOut('出错', e.message + '\n\n' + (e.stack || ''), false);
+  } finally {
+    btns.forEach((b) => (b.disabled = false));
+  }
+}
+
+document.querySelectorAll('button[data-act]').forEach((b) => {
+  b.onclick = () => run(b.dataset.act);
+});
+
+$('btn-copy').onclick = async () => {
+  await navigator.clipboard.writeText(lastText || out.textContent);
+  $('hint').textContent = '已复制到剪贴板。';
+};
+
+$('btn-folder').onclick = async () => {
+  const p = lastPaths?.txt || lastPaths?.json || null;
+  await window.debug.openFolder(p);
+};
+
+$('btn-clear').onclick = () => {
+  $('title').textContent = '结果';
+  out.className = 'placeholder';
+  out.textContent = '已清空。';
+  lastText = '';
+  lastPaths = null;
+};
+
+(async () => {
+  const info = await window.debug.bootstrap();
+  status = info.status;
+  statusLine(status);
+  window.debug.onStatus((s) => { status = s; statusLine(s); });
+})();
+</script>
+</body>
+</html>
